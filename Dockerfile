@@ -194,4 +194,6 @@ RUN luet database get-all-installed --output /etc/kairos/versions.yaml
 # Enable tun module on boot for edgevpn/vpn services
 RUN echo "tun" >> /etc/modules
 
+RUN echo 'LANG="en_US.UTF-8"' > /etc/default/locale
+
 
