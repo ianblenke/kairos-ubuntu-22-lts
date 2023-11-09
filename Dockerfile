@@ -1,6 +1,7 @@
 #FROM quay.io/kairos/framework:master_fips-systemd as kairos-base
-FROM quay.io/kairos/framework:master_ubuntu-22-lts as kairos-base
+#FROM quay.io/kairos/framework:master_ubuntu-22-lts as kairos-base
 #FROM quay.io/kairos/framework:master_ubuntu as kairos-base
+FROM quay.io/kairos/kairos-ubuntu-22-lts:v2.4.1-k3sv1.27.3-k3s1 as kairos-base
 
 # Base ubuntu image ()
 FROM ubuntu:jammy as base
@@ -52,6 +53,7 @@ RUN touch /usr/libexec/.keep
 ## Kairos required packages
 ## See: https://github.com/kairos-io/kairos/blob/master/images/Dockerfile.ubuntu-20-lts
 RUN apt-get update \
+ && apt-get dist-upgrade -y \
  && apt-get install -y --no-install-recommends \
     avahi-daemon \
     build-essential \
@@ -92,7 +94,6 @@ RUN apt-get update \
     kbd \
     krb5-locales \
     libssl-dev \
-    linux-generic-hwe-22.04 \
     lldpd \
     lvm2 \
     make \
@@ -132,6 +133,7 @@ RUN apt-get update \
     zstd \
     && apt-get remove -y unattended-upgrades && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+#    linux-generic-hwe-22.04 \
 #    ubuntu-advantage-tools \
 #    && apt-get purge --auto-remove -y ubuntu-advantage-tools \
 #    busybox \
@@ -147,6 +149,24 @@ RUN systemctl enable cos-setup-reconcile.timer && \
           systemctl enable cos-setup-fs.service && \
           systemctl enable cos-setup-boot.service && \
           systemctl enable cos-setup-network.service
+
+# Install rocm
+# Kernel driver repository for jammy
+COPY rocm.gpg /etc/apt/keyrings/rocm.gpg
+COPY rocm.list /etc/apt/sources.list.d/rocm.list
+COPY rocm.pin /etc/apt/preferences.d/rocm-pin-600
+RUN apt-get update \
+ && apt-get install -y amdgpu-dkms \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+COPY rocm.conf /etc/ld.so.conf.d/rocm.conf
+RUN ldconfig ; \
+    echo '' >> /etc/bash.bashrc.local \
+    echo 'export PATH=$PATH:/opt/rocm/bin:/opt/rocm/opencl/bin' >> /etc/bash.bashrc.local
+
+## This is 16G alone, too big.
+# && apt-get install -y rocm-hip-libraries \
+# && apt-get install -y rocm-hip-sdk \
 
 ### Configuration
 ### Took from: https://github.com/kairos-io/kairos/blob/master/images/Dockerfile.ubuntu-20-lts
@@ -185,15 +205,16 @@ RUN kernel=$(ls /boot/vmlinuz-* | head -n1) && ln -sf ."${kernel#/boot/}".hmac /
 # Clear cache
 RUN rm -rf /var/cache/* && journalctl --vacuum-size=1K && rm /etc/machine-id && rm /var/lib/dbus/machine-id && rm /etc/hostname
 
-# All of this is probably wrong, but I'm missing documentation here.
-COPY --from=luet /usr/bin/luet /usr/bin/luet
-COPY framework-profile.yaml /etc/luet/luet.yaml
-RUN luet install -y utils/edgevpn utils/k9s utils/nerdctl container/kubectl utils/kube-vip k8s/k3s-systemd
-RUN luet database get-all-installed --output /etc/kairos/versions.yaml
+## All of this is probably wrong, but I'm missing documentation here.
+#COPY --from=luet /usr/bin/luet /usr/bin/luet
+#COPY framework-profile.yaml /etc/luet/luet.yaml
+#RUN luet install -y utils/edgevpn utils/k9s utils/nerdctl container/kubectl utils/kube-vip k8s/k3s-systemd
+#RUN luet database get-all-installed --output /etc/kairos/versions.yaml
 
 # Enable tun module on boot for edgevpn/vpn services
 RUN echo "tun" >> /etc/modules
 
 RUN echo 'LANG="en_US.UTF-8"' > /etc/default/locale
 
+#COPY containerd-rootless-setuptool.sh /usr/bin/
 
