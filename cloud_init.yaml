@@ -33,6 +33,18 @@ strict: false
 # Custom partitioning
 stages:
   boot:
+    - name: "Setup exception trace"
+       systctl:
+         debug.exception-trace: "0"
+         net.core.rmem_max: "134217728"             # Grow kernel network core max read buffer
+         net.core.wmem_max: "134217728"             # Grow kernel network core max write buffer
+         net.ipv4.tcp_congestion_control: "bbr"     # Set TCP congestion control to bbr
+         net.ipv4.tcp_notsent_lowat: "16384"        # Set socket option to limit state machine latency
+         net.ipv4.tcp_rmem: "4096 131072 134217728" # Grow kernel tcp read buffer
+         net.ipv4.tcp_wmem: "4096 131072 134217728" # Grow kernel tcp write buffer
+         net.core.default_qdisc: "fq"               # Define queuing discipline to use for network devices
+         net.bridge.bridge-nf-call-iptables: "0"    # Do not call iptables for bridged traffic
+         net.bridge.bridge-nf-call-ip6tables: "0"   # Do not call ip6tables for bridged traffic
     - name: "Repart disk"
       layout:
         device:
@@ -382,6 +394,48 @@ kubevip:
   enable: true
   # Specifies a KubeVIP Interface
   interface: "edgevpn0"
+
+#bundles:
+#- targets:
+#  - run://quay.io/kairos/community-bundles:cert-manager_latest
+#  - run://quay.io/kairos/community-bundles:flux_latest
+#  - run://quay.io/kairos/community-bundles:kubevirt
+#  - run://quay.io/kairos/community-bundles:kairos_latest
+#  - run://quay.io/kairos/community-bundles:longhorn_latest
+#  - run://quay.io/kairos/community-bundles:metallb_latest
+#
+## Specify cert-manager settings
+#certManager:
+#  version: v1.11.0
+#
+## Specify kairos bundle setting
+#kairos:
+#  osbuilder:
+#    enable: true
+#    version: ... #optional
+#  entangle:
+#    enable: true
+#    version: ... #optional
+#  entangleProxy:
+#    enable: true
+#    version: ... #optional
+#
+## Specify kubevirt settings
+#kubevirt:
+#  manager: true
+#
+## Specify longhorn settings
+#longhorn:
+#  values:
+#    defaultSettings:
+#      backupstorePollInterval: 600
+#  version: 1.4.0
+#
+## Specify metallb settings
+#metallb:
+#  version: 0.13.7
+#  address_pool: 192.168.1.10-192.168.1.20
+#
 
 #  initramfs:
 #    - files:

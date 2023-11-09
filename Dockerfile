@@ -1,9 +1,11 @@
-FROM quay.io/kairos/framework:master_fips-systemd as kairos-base
-#FROM quay.io/kairos/framework:master_ubuntu-22-lts as kairos-base
+#FROM quay.io/kairos/framework:master_fips-systemd as kairos-base
+FROM quay.io/kairos/framework:master_ubuntu-22-lts as kairos-base
 #FROM quay.io/kairos/framework:master_ubuntu as kairos-base
 
 # Base ubuntu image ()
 FROM ubuntu:jammy as base
+
+FROM quay.io/luet/base:0.35.0 as luet
 
 # Generate os-release file
 FROM quay.io/kairos/osbuilder-tools:latest as osbuilder
@@ -182,3 +184,14 @@ RUN kernel=$(ls /boot/vmlinuz-* | head -n1) && ln -sf ."${kernel#/boot/}".hmac /
 
 # Clear cache
 RUN rm -rf /var/cache/* && journalctl --vacuum-size=1K && rm /etc/machine-id && rm /var/lib/dbus/machine-id && rm /etc/hostname
+
+# All of this is probably wrong, but I'm missing documentation here.
+COPY --from=luet /usr/bin/luet /usr/bin/luet
+COPY framework-profile.yaml /etc/luet/luet.yaml
+RUN luet install -y utils/edgevpn utils/k9s utils/nerdctl container/kubectl utils/kube-vip k8s/k3s-systemd
+RUN luet database get-all-installed --output /etc/kairos/versions.yaml
+
+# Enable tun module on boot for edgevpn/vpn services
+RUN echo "tun" >> /etc/modules
+
+
