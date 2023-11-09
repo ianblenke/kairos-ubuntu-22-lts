@@ -1,0 +1,436 @@
+#cloud-config
+
+cosign: false
+verify: false
+
+# Additional system users
+users:
+- name: "kairos"
+  passwd: "kairos"
+  lock_passwd: true
+  groups:
+    - "admin"
+  ssh_authorized_keys:
+    - github:ianblenke
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINkMvfdyNjyOB81UD3qxETfjmPba9e1LjIWs9haNJWRo ianblenke@nasgul
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINGF/x7TuFqtLNzeL2z73YzdkfVcTYJ0BdZyT1M1jxcl ian@blenke.com
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCym6DLVjzloLXZbWDiDBV8CBmxAF2BHyQgD3yd4EqlDRabS9xFTT2KAzK+9S8QI/egjRxLNQDxDuAfWSYuMjQ+231rLItZQnBscPz5c3DHGNuDl8ku+68f0ag/sCgSv7G7B7FFdEjGrFiBgX41D34U2182WfBeAepwmUljFncrFIbdj2N/DR2GwGo7jWJLNTyknsj/VzZ1/PqUz9rWjF5XBzDNVPy8QvLdQNAk6VbaSm1Ewe7PpGrCP9ZiSyq/V3r5fQUkRINZEvGaYRsygt/AFjk2tNlP8fgwbdnQHTaX69MMKbFtIh6Aa4spBwsylCXnxZB87ToHHamMYRVrs7OuWagsdDpv0O5RmyvVu05y/DDArij6xmEt1pZ2ZE7xO10hfuVvHRNFxumDBqFaUC/V6W/Grg5eiTMdJGwCnVJ/6lQ35censOTy5NNcder89HWdvqBIWxLVQIW5aC40lcNSR38X4IrLttlsBtTmjPvO4vnsPD+2H7ZCCvlOz03jMWc= galp3@pop-os
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHdzdvT3OIeh0RX9LxBn5Jhop8LAyKoUcbDYH5+1eEyU ianblenke@icbgmba
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPOt8NqTIYoN72VCOHMBpFS+LvMMBMueI8QA/8NdfWqX bad_pwny@nuc13egpu
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMBrB88GQvdwwazKN8hBgW0/1lKTCzP6laFShCondhzb bad_pwny@hx77g1
+
+# enable debug logging
+debug: true
+# Additional paths for look for cloud-init files
+cloud-init-paths:
+  - /cloud-init.d
+  - /run/initramfs/cos-state
+  - /run/initramfs/live
+
+# fail on cloud-init errors, defaults to false
+strict: false
+
+# Custom partitioning
+stages:
+  boot:
+    - name: "Repart disk"
+      layout:
+        device:
+          path: "/dev/nvme0n1"
+        # Only last partition can be expanded and it happens after all the other
+        # partitions are created. size: 0 means all available free space
+        expand_partition:
+          size: 0
+        add_partitions:
+          - fsLabel: "COS_OEM"
+            pLabel: "oem"
+            filesystem: "ext4"
+            size: 1000
+          - fsLabel: "COS_RECOVERY"
+            pLabel: "recovery"
+            filesystem: "ext4"
+            size: 30000
+          - fsLabel: "COS_STATE"
+            pLabel: "state"
+            filesystem: "ext4"
+            size: 30000
+          #- fsLabel: "COS_PERSISTENT"
+          #  pLabel: "persistent"
+          #  filesystem: "ext4"
+          #    size: 0
+
+#  kairos-install.pre.before:
+#  - if:  '[ -e /dev/nvme0n1 ]'
+#    name: "Create partitions"
+#    commands:
+#      - |
+#        parted --script --machine -- /dev/nvme0n1 mklabel msdos
+#    layout:
+#      device:
+#        # It will partition a device including the given filesystem label
+#        # or partition label (filesystem label matches first) or the device
+#        # provided in 'path'. The label check has precedence over path when
+#        # both are provided.
+#        path: "/dev/nvme0n1"
+#      expand_partitions:
+#        size: 0 # All available space
+#      add_partitions:
+#        - fsLabel: "COS_OEM"
+#          pLabel: "oem"
+#          filesystem: "ext4"
+#          size: 1000
+#        - fsLabel: "COS_RECOVERY"
+#          pLabel: "recovery"
+#          filesystem: "ext4"
+#          size: 30000
+#        - fsLabel: "COS_STATE"
+#          pLabel: "state"
+#          filesystem: "ext4"
+#          size: 30000
+#        - fsLabel: "COS_PERSISTENT"
+#          pLabel: "persistent"
+#          filesystem: "ext4"
+#          size: 0
+
+# The install block is to drive automatic installations without user interaction.
+install:
+  # Device for automated installs
+  device: "/dev/nvme0n1"
+  # Reboot after installation
+  reboot: false
+  # Power off after installation
+  poweroff: false
+  # Set to true when installing without Pairing
+  auto: true
+
+  # firmware to use ('efi|bios')
+  # This is autodetected so only use this to force the installation to use a different one if needed.
+  # NOTE: This can break your system boot if forced to the wrong value
+  firmware: efi
+  # Disk format ('gpt|msdos')
+  # Defaults to gpt. We recommend not changing it to msdos unless it's needed for legacy hardware
+  part-table: gpt
+
+  # Override the grub entry name
+  grub-entry-name: Nucleus
+  
+  # partitions setup
+  # setting a partition size key to 0 means that the partition will take over the rest of the free space on the disk
+  # after creating the rest of the partitions
+  # by default the persistent partition has a value of 0
+  # if you want any of the extra partitions to fill the rest of the space, you will need to set the persistent partition
+  # size to a different value, for example
+  # partitions:
+  #   persistent:
+  #     size: 300
+
+  # default partitions
+  # only 'oem', 'recovery', 'state' and 'persistent' objects allowed
+  # Only size and fs should be changed here
+  # size in MiB
+  partitions:
+    oem:
+      label: COS_OEM
+      size: 1000
+      fs: ext4
+    state:
+      label: COS_STATE
+      size: 30000
+      fs: ext4
+    recovery:
+      label: COS_RECOVERY
+      size: 30000
+      fs: ext4
+  #  persistent:
+  #   label: COS_PERSISTENT
+  #   size: 0
+  #   fs: ext4
+  # note: This can also be set with dot notation like the following examples for a more condensed view:
+  # partitions.oem.size: 60
+  # partitions.oem.fs: ext4
+  # partitions.recovery.size: 10000
+  # partitions.recovery.fs: ext4
+
+  # extra partitions to create during install
+  # only size, label and fs are used
+  # name is used for the partition label, but it's not really used during the kairos lifecycle. No spaces allowed.
+  # if no fs is given the partition will be created but not formatted
+  # These partitions are not automounted only created and formatted
+  #extra-partitions:
+  #  - Name: myPartition
+  #    size: 100
+  #    fs: ext4
+  #    label: ONE_PARTITION
+  #  - Name: myOtherPartition
+  #    size: 200
+  #    fs: ext4
+  #    label: TWO_PARTITION
+
+  ## This encrypts the partition, but there are dependencies on libcrypto.so.1.1 that need to be worked out.
+  #encrypted_partitions:
+  #- COS_PERSISTENT
+  
+  # no-format: true skips any disk partitioning and formatting
+  # If set to true installation procedure will error out if expected
+  # partitions are not already present within the disk.
+  no-format: false
+
+  # if no-format is used and elemental is running over an existing deployment
+  # force can be used to force installation.
+  force: true
+
+  # Creates these dirs in the rootfs during installation. As the rootfs is RO from boot, sometimes we find that we
+  # some applications want to write to non-standard paths like /data
+  # If that dir is not already in the rootfs it makes it difficult to create that path on an RO system
+  # This allows to create some extra paths in the rootfs that then we count use for mounting or binding via
+  # the cloud-config stages
+  extra-dirs-rootfs:
+    - /data
+    - /src
+  
+  # Override image sizes for active/passive/recovery
+  # Note that the active+passive images are stored in the state partition and
+  # the recovery in the recovery partition, so they should be big enough to accommodate te images sizes set below
+  # size in MiB
+  system:
+    label: COS_ACTIVE
+    size: 10000
+    fs: ext4
+  passive:
+    label: COS_PASSIVE
+    size: 10000
+  recovery-system:
+    size: 10000
+
+  # note: This can also be set with dot notation like the following examples for a more condensed view:
+  # system.size: 10000
+  # passive.size: 10000
+  # recovery-system.size: 5000
+  
+  # Use a different container image for the installation
+  image: "docker://docker.io/ianblenke/kairos-ubuntu-22-lts"
+  #image: quay.io/kairos/kairos-ubuntu-22-lts:v2.4.1-k3sv1.27.3-k3s1
+  # Add bundles in runtime
+  #bundles:
+  #  - ...
+  # Set grub options
+  #grub_options:
+  #  # additional Kernel option cmdline to apply
+  #  extra_cmdline: "config_url=http://"
+  #  # Same, just for active
+  #  extra_active_cmdline: ""
+  #  # Same, just for passive
+  #  extra_passive_cmdline: ""
+  #  # Change GRUB menu entry
+  #  default_menu_entry: ""
+  # Environmental variable to set to the installer calls
+  #env:
+  #- foo=bar
+  # custom user mounts
+  # bind mounts, can be read and modified, changes persist reboots
+  bind_mounts:
+  - /var/lib/ceph
+  # ephemeral mounts, can be read and modified, changed are discarded at reboot
+  #ephemeral_mounts:
+  #- /opt/scratch/
+  #cloud-config
+  # extra cloud-init config file URI to include during the installation
+  #cloud-init: "https://some.cloud-init.org/my-config-file"
+
+
+# The reset block configures what happens when reset is called
+reset:
+  # Reboot after reset
+  reboot: false
+  # Power off after reset
+  poweroff: false
+
+  # Override the grub entry name
+  grub-entry-name: Nucleus
+
+  # if set to true it will format persistent partitions ('oem 'and 'persistent')
+  reset-persistent: true
+  reset-oem: false
+
+  # Creates these dirs in the rootfs during reset. As the rootfs is RO from boot, sometimes we find that we
+  # some applications want to write to non-standard paths like /data
+  # If that dir is not already in the rootfs it makes it difficult to create that path on an RO system
+  # This allows to create some extra paths in the rootfs that then we count use for mounting or binding via
+  # the cloud-config stages
+  extra-dirs-rootfs:
+    - /data
+    - /src
+
+
+# The upgrade block configures what happens when upgrade is called
+upgrade:
+  # Reboot after upgrade
+  reboot: false
+  # Power off after upgrade
+  poweroff: true
+
+  # Override the grub entry name
+  grub-entry-name: Nucleus
+
+  # if set to true upgrade command will upgrade recovery system instead
+  # of main active system
+  recovery: false
+
+  # Override image sizes for active/recovery
+  # Note that the active+passive images are stored in the state partition and
+  # the recovery in the recovery partition, so they should be big enough to accommodate te images sizes set below
+  # size in MiB
+  # During upgrade only the active or recovery image cna be resized as those are the ones that contain the upgrade
+  # passive image is the current system, and that its untouched during the upgrade
+  system:
+    size: 10000
+  recovery-system:
+    size: 10000
+
+  # Creates these dirs in the rootfs during upgrade. As the rootfs is RO from boot, sometimes we find that we
+  # some applications want to write to non-standard paths like /data
+  # If that dir is not already in the rootfs it makes it difficult to create that path on an RO system
+  # This allows to create some extra paths in the rootfs that then we count use for mounting or binding via
+  # the cloud-config stages
+  extra-dirs-rootfs:
+    - /data
+    - /src
+
+k3s:
+  enabled: true
+#  # Additional env/args for k3s server instances
+#  env:
+#    K3S_RESOLV_CONF: ""
+#    K3S_DATASTORE_ENDPOINT: "mysql://username:password@tcp(hostname:3306)/database-name"
+#  args:
+#    - --node-label ""
+#    - --data-dir ""
+#  # Enabling below it replaces args/env entirely
+#  # replace_env: true
+#  # replace_args: true
+
+#k3s-agent:
+#  # Additional env/args for k3s agent instances
+#  env:
+#    K3S_NODE_NAME: "foo"
+#  args:
+#    - --private-registry "..."
+#  # Enabling below it replaces args/env entirely
+#  # replace_env: true
+#  # replace_args: true
+
+## The p2p block enables the p2p full-mesh functionalities.
+## To disable, don't specify one.
+p2p:
+  # Manually set node role. Available: master, worker. Defaults auto (none). This is available
+  role: "master"
+  # User defined network-id. Can be used to have multiple clusters in the same network
+  network_id: "edgevpn0"
+  # Enable embedded DNS See also: https://mudler.github.io/edgevpn/docs/concepts/overview/dns/
+  dns: true
+  # Disabling DHT makes co-ordination to discover nodes only in the local network
+  #disable_dht: true #Enabled by default
+  # Configures a VPN for the cluster nodes
+  vpn:
+    #create: false # defaults to true
+    #use: false # defaults to true
+    env:
+     ## EdgeVPN environment options
+     # DHCP: "true"
+     ## Disable DHT (for airgap)
+     # EDGEVPNDHT: "false"
+     # EDGEVPNMAXCONNS: "200"
+     # EDGEVPNHOLEPUNCH: true
+     # EDGEVPNMPLEX: true
+     ## If DHCP is false, it's required to be given a specific node IP. Can be arbitrary
+     - IFACE=edgevpn0
+     - ADDRESS=10.1.0.23/24
+     - API=true
+     - APILISTEN=0.0.0.0:8080
+     - LIBP2PLOGLEVEL=info
+#    # See all EDGEVPN options:
+#    # - https://github.com/mudler/edgevpn/blob/master/cmd/util.go#L33
+#    # - https://github.com/mudler/edgevpn/blob/master/cmd/main.go#L48
+  # Automatic cluster deployment configuration
+  auto:
+    # Enables Automatic node configuration (self-coordination)
+    # for role assignment
+    enable: true
+    # HA enables automatic HA roles assignment.
+    # A master cluster init is always required,
+    # Any additional master_node is configured as part of the 
+    # HA control plane.
+    # If auto is disabled, HA has no effect.
+    ha:
+      # Enables HA control-plane
+      enable: true
+      # Number of HA additional master nodes.
+      # A master node is always required for creating the cluster and is implied.
+      # The setting below adds 2 additional master nodes, for a total of 3.
+      master_nodes: 2
+      # Use an External database for the HA control plane
+      #external_db: "external-db-string"
+  # network_token is the shared secret used by the nodes to co-ordinate with p2p
+  #network_token: "${network_token}"
+
+## Sets the Elastic IP used in KubeVIP. Only valid with p2p
+kubevip:
+  eip: "10.1.0.254"
+  # Specify a manifest URL for KubeVIP. Empty uses default
+#  manifest_url: ""
+  # Enables KubeVIP
+  enable: true
+  # Specifies a KubeVIP Interface
+  interface: "edgevpn0"
+
+#  initramfs:
+#    - files:
+#        - path: /var/lib/connman/default.config
+#          permissions: 0644
+#          content: |
+#            [service_eth0]
+#            Type = ethernet
+#            IPv4 = 192.168.122.170/255.255.255.0/192.168.122.1
+#            IPv6 = off
+#            Nameservers = 1.1.1.1      
+#
+#    - path: /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+#      content: |
+#        # This file should be generated using wpa_passphrase
+#        ctrl_interface=/var/run/wpa_supplicant
+#        ctrl_interface_group=admin
+#        network={
+#                ssid="$SSID_GOES_HERE"
+#                psk=$PSK_GOES_HERE
+#        }
+#      permissions: 0600
+#      owner: 0
+#      group: 0
+#
+#  boot:
+#    - name: "Enabling wireless"
+#      commands:
+#        - |
+#          systemctl enable wpa_supplicant@wlan0
+#          systemctl disable wpa_supplicant
+#          systemctl stop wpa_supplicant || :
+#          systemctl start wpa_supplicant@wlan0 || :
+
+
+# Standard cloud-init syntax, see: https://github.com/mudler/yip/tree/e688612df3b6f24dba8102f63a76e48db49606b2#compatibility-with-cloud-init-format
+growpart:
+ devices: ['/']
+
+
+runcmd:
+- mkdir -p /run/containerd ; ln -nsf /run/k3s/containerd/containerd.sock /run/containerd/containerd.sock
+
+hostname: "hx77g1"
+
+#write_files:
+#- encoding: b64
+#  content: CiMgVGhpcyBmaWxlIGNvbnRyb2xzIHRoZSBzdGF0ZSBvZiBTRUxpbnV4
+#  path: /foo/bar
+#  permissions: "0644"
+#  owner: "bar"
+
