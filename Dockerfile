@@ -160,10 +160,14 @@ RUN apt-get update \
  && apt-get install -y amdgpu-dkms \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
-COPY rocm.conf /etc/ld.so.conf.d/rocm.conf
-RUN ldconfig ; \
-    echo '' >> /etc/bash.bashrc.local \
-    echo 'export PATH=$PATH:/opt/rocm/bin:/opt/rocm/opencl/bin' >> /etc/bash.bashrc.local
+#COPY rocm.conf /etc/ld.so.conf.d/rocm.conf
+#RUN ldconfig ; \
+#    echo '' >> /etc/bash.bashrc.local ; \
+#    echo 'export PATH=$PATH:/opt/rocm/bin:/opt/rocm/opencl/bin' >> /etc/bash.bashrc.local
+
+COPY bash_profile.d/ /etc/bash_profile.d/
+RUN  echo '' >> /etc/bash.bashrc.local ; \
+     echo 'for file in /etc/bash.profile.d/* ; do . $file ; done' >> /etc/bash.bashrc.local
 
 ## This is 16G alone, too big.
 # && apt-get install -y rocm-hip-libraries \
