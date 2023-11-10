@@ -57,6 +57,22 @@ stages:
               namespace: cattle-system
             spec:
               chart: https://github.com/rancher/fleet/releases/download/v0.9.0/fleet-0.9.0.tgz
+    - name: "Copy longhorn deployment files"
+      files:
+        - path: /var/lib/rancher/k3s/server/manifests/longhorn-config.yaml
+          content: |
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: longhorn
+            ---
+            apiVersion: helm.cattle.io/v1
+            kind: HelmChart
+            metadata:
+              name: longhorn-crd
+              namespace: longhorn
+            spec:
+              chart: https://github.com/longhorn/charts/releases/download/longhorn-1.5.2/longhorn-1.5.2.tgz
     - name: "Setup exception trace"
       sysctl:
         debug.exception-trace: "0"
