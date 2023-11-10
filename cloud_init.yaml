@@ -1,7 +1,7 @@
 #cloud-config
 
 cosign: false
-verify: false
+verify: true
 
 # Additional system users
 users:
@@ -28,23 +28,23 @@ cloud-init-paths:
   - /run/initramfs/live
 
 # fail on cloud-init errors, defaults to false
-strict: false
+strict: true
 
 # Custom partitioning
 stages:
   boot:
     - name: "Setup exception trace"
-       systctl:
-         debug.exception-trace: "0"
-         net.core.rmem_max: "134217728"             # Grow kernel network core max read buffer
-         net.core.wmem_max: "134217728"             # Grow kernel network core max write buffer
-         net.ipv4.tcp_congestion_control: "bbr"     # Set TCP congestion control to bbr
-         net.ipv4.tcp_notsent_lowat: "16384"        # Set socket option to limit state machine latency
-         net.ipv4.tcp_rmem: "4096 131072 134217728" # Grow kernel tcp read buffer
-         net.ipv4.tcp_wmem: "4096 131072 134217728" # Grow kernel tcp write buffer
-         net.core.default_qdisc: "fq"               # Define queuing discipline to use for network devices
-         net.bridge.bridge-nf-call-iptables: "0"    # Do not call iptables for bridged traffic
-         net.bridge.bridge-nf-call-ip6tables: "0"   # Do not call ip6tables for bridged traffic
+      sysctl:
+        debug.exception-trace: "0"
+        net.core.rmem_max: "134217728"             # Grow kernel network core max read buffer
+        net.core.wmem_max: "134217728"             # Grow kernel network core max write buffer
+        net.ipv4.tcp_congestion_control: "bbr"     # Set TCP congestion control to bbr
+        net.ipv4.tcp_notsent_lowat: "16384"        # Set socket option to limit state machine latency
+        net.ipv4.tcp_rmem: "4096 131072 134217728" # Grow kernel tcp read buffer
+        net.ipv4.tcp_wmem: "4096 131072 134217728" # Grow kernel tcp write buffer
+        net.core.default_qdisc: "fq"               # Define queuing discipline to use for network devices
+        net.bridge.bridge-nf-call-iptables: "0"    # Do not call iptables for bridged traffic
+        net.bridge.bridge-nf-call-ip6tables: "0"   # Do not call ip6tables for bridged traffic
     - name: "Repart disk"
       layout:
         device:
@@ -189,7 +189,7 @@ install:
 
   # if no-format is used and elemental is running over an existing deployment
   # force can be used to force installation.
-  force: true
+  force: false
 
   # Creates these dirs in the rootfs during installation. As the rootfs is RO from boot, sometimes we find that we
   # some applications want to write to non-standard paths like /data
@@ -277,7 +277,7 @@ reset:
 # The upgrade block configures what happens when upgrade is called
 upgrade:
   # Reboot after upgrade
-  reboot: false
+  reboot: true
   # Power off after upgrade
   poweroff: true
 
@@ -347,19 +347,19 @@ p2p:
     #create: false # defaults to true
     #use: false # defaults to true
     env:
-     ## EdgeVPN environment options
-     # DHCP: "true"
-     ## Disable DHT (for airgap)
-     # EDGEVPNDHT: "false"
-     # EDGEVPNMAXCONNS: "200"
-     # EDGEVPNHOLEPUNCH: true
-     # EDGEVPNMPLEX: true
-     ## If DHCP is false, it's required to be given a specific node IP. Can be arbitrary
-     - IFACE=edgevpn0
-     - ADDRESS=10.1.0.23/24
-     - API=true
-     - APILISTEN=0.0.0.0:8080
-     - LIBP2PLOGLEVEL=info
+      ## EdgeVPN environment options
+      # DHCP: "true"
+      ## Disable DHT (for airgap)
+      # EDGEVPNDHT: "false"
+      # EDGEVPNMAXCONNS: "200"
+      # EDGEVPNHOLEPUNCH: true
+      # EDGEVPNMPLEX: true
+      ## If DHCP is false, it's required to be given a specific node IP. Can be arbitrary
+      IFACE: "edgevpn0"
+      ADDRESS: "10.1.0.23/24"
+      API: "true"
+      APILISTEN: "0.0.0.0:8080"
+      LIBP2PLOGLEVEL: "info"
 #    # See all EDGEVPN options:
 #    # - https://github.com/mudler/edgevpn/blob/master/cmd/util.go#L33
 #    # - https://github.com/mudler/edgevpn/blob/master/cmd/main.go#L48
@@ -386,14 +386,14 @@ p2p:
   #network_token: "${network_token}"
 
 ## Sets the Elastic IP used in KubeVIP. Only valid with p2p
-kubevip:
-  eip: "10.1.0.254"
-  # Specify a manifest URL for KubeVIP. Empty uses default
-#  manifest_url: ""
-  # Enables KubeVIP
-  enable: true
-  # Specifies a KubeVIP Interface
-  interface: "edgevpn0"
+#kubevip:
+#  eip: "10.1.0.254"
+#  # Specify a manifest URL for KubeVIP. Empty uses default
+#  #manifest_url: ""
+#  # Enables KubeVIP
+#  enable: true
+#  # Specifies a KubeVIP Interface
+#  interface: "edgevpn0"
 
 #bundles:
 #- targets:

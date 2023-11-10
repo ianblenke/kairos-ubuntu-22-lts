@@ -2,6 +2,7 @@
 #FROM quay.io/kairos/framework:master_ubuntu-22-lts as kairos-base
 #FROM quay.io/kairos/framework:master_ubuntu as kairos-base
 FROM quay.io/kairos/kairos-ubuntu-22-lts:v2.4.1-k3sv1.27.3-k3s1 as kairos-base
+#FROM quay.io/kairos/framework:v2.4.1_ubuntu-22-lts as kairos-base
 
 # Base ubuntu image ()
 FROM ubuntu:jammy as base
@@ -189,7 +190,7 @@ RUN rm -Rf /boot/.vmlinuz.hmac # No idea
 ### Generate initrd
 #RUN update-initramfs -c -k all
 ### Symlink in initrd
-RUN kernel=$(ls /lib/modules | head -n1) \
+RUN kernel=$(ls /lib/modules | tail -n1) \
  && ln -nsf "vmlinuz-${kernel}" /boot/vmlinuz \
  && dracut -v -N -f "/boot/initrd-${kernel}" "${kernel}" \
  && ln -nsf "initrd-${kernel}" /boot/initrd \
@@ -208,7 +209,7 @@ RUN rm -rf /var/cache/* && journalctl --vacuum-size=1K && rm /etc/machine-id && 
 ## All of this is probably wrong, but I'm missing documentation here.
 #COPY --from=luet /usr/bin/luet /usr/bin/luet
 #COPY framework-profile.yaml /etc/luet/luet.yaml
-#RUN luet install -y utils/edgevpn utils/k9s utils/nerdctl container/kubectl utils/kube-vip k8s/k3s-systemd
+#RUN luet install -y utils/earthly utils/edgevpn utils/helm utils/k9s utils/nerdctl container/kubectl utils/kube-vip k8s/k3s-systemd
 #RUN luet database get-all-installed --output /etc/kairos/versions.yaml
 
 # Enable tun module on boot for edgevpn/vpn services
@@ -216,5 +217,10 @@ RUN echo "tun" >> /etc/modules
 
 RUN echo 'LANG="en_US.UTF-8"' > /etc/default/locale
 
+#RUN ln -nsf k3s /usr/bin/ctr \
+# && ln -nsf k3s /usr/bin/crictl
+
 #COPY containerd-rootless-setuptool.sh /usr/bin/
+
+COPY avahi-dbus.conf /etc/dbus-1/system.d/avahi-dbus.conf
 
