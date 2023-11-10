@@ -338,6 +338,8 @@ p2p:
   role: "master"
   # User defined network-id. Can be used to have multiple clusters in the same network
   network_id: "edgevpn0"
+  # Do not commit this to this git repo or include it in any public image repository
+  #network_token: "${network_token}"
   # Enable embedded DNS See also: https://mudler.github.io/edgevpn/docs/concepts/overview/dns/
   dns: true
   # Disabling DHT makes co-ordination to discover nodes only in the local network
