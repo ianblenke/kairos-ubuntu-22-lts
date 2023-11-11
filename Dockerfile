@@ -118,6 +118,7 @@ RUN apt-get update \
     qemu-guest-agent \
     rsync \
     shared-mime-info \
+    silversearcher-ag \
     smartmontools \
     snapd \
     snmpd \
@@ -167,7 +168,7 @@ RUN apt-get update \
 
 COPY bash_profile.d/ /etc/bash_profile.d/
 RUN  echo '' >> /etc/bash.bashrc.local ; \
-     echo 'for file in /etc/bash.profile.d/* ; do . $file ; done' >> /etc/bash.bashrc.local
+     echo 'for file in /etc/bash_profile.d/* ; do . $file ; done' >> /etc/bash.bashrc.local
 
 ## This is 16G alone, too big.
 # && apt-get install -y rocm-hip-libraries \
