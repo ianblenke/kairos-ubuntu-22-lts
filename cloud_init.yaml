@@ -5,6 +5,10 @@ verify: true
 
 # Additional system users
 users:
+- name: "power"
+  lock_passwd: true
+  groups:
+    - "power"
 - name: "avahi"
   lock_passwd: true
   groups:
@@ -37,6 +41,24 @@ strict: true
 # Custom partitioning
 stages:
   boot:
+    - name: "Add dnsutils pod"
+      files:
+        - path: /var/lib/rancher/k3s/server/manifests/dns-utils.yaml
+          content: |
+            apiVersion: v1
+            kind: Pod
+            metadata:
+              name: dnsutils
+              namespace: default
+            spec:
+              containers:
+              - name: dnsutils
+                image: registry.k8s.io/e2e-test-images/jessie-dnsutils:1.3
+                command:
+                  - sleep
+                  - "infinity"
+                imagePullPolicy: IfNotPresent
+              restartPolicy: Always
     - name: "Copy fleet deployment files"
       files:
         - path: /var/lib/rancher/k3s/server/manifests/fleet-config.yaml
