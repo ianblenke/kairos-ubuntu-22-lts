@@ -5,6 +5,10 @@ verify: true
 
 # Additional system users
 users:
+- name: "avahi"
+  lock_passwd: true
+  groups:
+    - "admin"
 - name: "kairos"
   passwd: "kairos"
   lock_passwd: true
