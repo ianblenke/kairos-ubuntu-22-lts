@@ -229,7 +229,10 @@ RUN echo 'LANG="en_US.UTF-8"' > /etc/default/locale
 #COPY containerd-rootless-setuptool.sh /usr/bin/
 
 COPY avahi-dbus.conf /etc/dbus-1/system.d/avahi-dbus.conf
+COPY avahi-daemon.override /etc/systemd/system/avahi-daemon.service.d/override.conf
 
 # https://wiki.archlinux.org/title/Kubernetes#Pods_cannot_communicate_when_using_Flannel_CNI_and_systemd-networkd
 COPY 50-flannel.link /etc/systemd/network/50-flannel.link
+
+#COPY registries.yaml /etc/rancher/k3s/registries.yaml
 

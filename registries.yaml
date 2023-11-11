@@ -1,0 +1,7 @@
+# https://docs.k3s.io/installation/private-registry
+
+mirrors:
+  docker.io:
+    endpoint:
+      - "https://mycustomreg.com:5000"
+

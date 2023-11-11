@@ -393,11 +393,19 @@ upgrade:
 k3s:
   enabled: true
 #  # Additional env/args for k3s server instances
-#  env:
+  env:
 #    K3S_RESOLV_CONF: ""
 #    K3S_DATASTORE_ENDPOINT: "mysql://username:password@tcp(hostname:3306)/database-name"
-#  args:
-#    - --node-label ""
+    K3S_KUBECONFIG_MODE: "644"
+  args:
+    # https://docs.k3s.io/installation/network-options#custom-cni
+    - --disable-network-policy
+    # https://docs.k3s.io/installation/configuration#configuration-file
+    - --write-kubeconfig-mode "0644"
+    - --node-label "role=master"
+    # https://docs.k3s.io/datastore/ha-embedded
+    - --cluster-init
+#    - --flannel-backend none
 #    - --data-dir ""
 #  # Enabling below it replaces args/env entirely
 #  # replace_env: true
@@ -406,6 +414,8 @@ k3s:
 #k3s-agent:
 #  # Additional env/args for k3s agent instances
 #  env:
+#    K3S_TOKEN: "KubeSecret"
+#    K3S_URL: https://hostname:6443
 #    K3S_NODE_NAME: "foo"
 #  args:
 #    - --private-registry "..."
