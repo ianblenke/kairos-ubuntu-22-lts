@@ -105,7 +105,7 @@ RUN apt-get update \
     neovim \
     networkd-dispatcher \
     nfs-common \
-    nss-mdns \
+    libnss-mdns \
     nvme-cli \
     open-iscsi \
     openssh-server \

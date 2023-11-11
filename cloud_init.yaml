@@ -77,6 +77,22 @@ stages:
               namespace: longhorn
             spec:
               chart: https://github.com/longhorn/charts/releases/download/longhorn-1.5.2/longhorn-1.5.2.tgz
+    - name: "Copy forgejo deployment files"
+      files:
+        - path: /var/lib/rancher/k3s/server/manifests/forgejo-config.yaml
+          content: |
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: forgejo
+            ---
+            apiVersion: helm.cattle.io/v1
+            kind: HelmChart
+            metadata:
+              name: forgejo-crd
+              namespace: forgejo
+            spec:
+              chart: https://codeberg.org/forgejo-contrib/forgejo-helm/releases/download/v0.13.0/forgejo-0.13.0.tgz
     - name: "Setup exception trace"
       sysctl:
         debug.exception-trace: "0"
