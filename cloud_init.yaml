@@ -398,6 +398,10 @@ k3s:
 #    K3S_DATASTORE_ENDPOINT: "mysql://username:password@tcp(hostname:3306)/database-name"
     K3S_KUBECONFIG_MODE: "644"
   args:
+    - --kubelet-arg="node-ip=0.0.0.0" # To prioritize IPv4 traffic
+#   #OR
+#   - --kubelet-arg="node-ip=::" # To prioritize IPv6 traffic
+    - --cluster-cidr=10.42.0.0/16,fd00:cafe:42:0::/56 --service-cidr=10.43.0.0/16,fd00:cafe:42:1::/112
     # https://docs.k3s.io/installation/network-options#custom-cni
     - --disable-network-policy
     # https://docs.k3s.io/installation/configuration#configuration-file
@@ -405,8 +409,9 @@ k3s:
     - --node-label "role=master"
     # https://docs.k3s.io/datastore/ha-embedded
     - --cluster-init
-#    - --flannel-backend none
-#    - --data-dir ""
+#   - --private-registry "..."
+#   - --flannel-backend none
+#   - --data-dir ""
 #  # Enabling below it replaces args/env entirely
 #  # replace_env: true
 #  # replace_args: true
@@ -417,8 +422,12 @@ k3s:
 #    K3S_TOKEN: "KubeSecret"
 #    K3S_URL: https://hostname:6443
 #    K3S_NODE_NAME: "foo"
-#  args:
-#    - --private-registry "..."
+  args:
+    - --cluster-cidr=10.42.0.0/16,fd00:cafe:42:0::/56 --service-cidr=10.43.0.0/16,fd00:cafe:42:1::/112
+    - --kubelet-arg="node-ip=0.0.0.0" # To proritize IPv4 traffic
+#   #OR
+#   - --kubelet-arg="node-ip=::" # To proritize IPv6 traffic
+#   - --private-registry "..."
 #  # Enabling below it replaces args/env entirely
 #  # replace_env: true
 #  # replace_args: true
