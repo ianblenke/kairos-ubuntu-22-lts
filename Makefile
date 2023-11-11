@@ -1,7 +1,7 @@
 all:
 	./build.sh
 
-iso:
+iso: all
 	./build-iso.sh
 
 # You probably don't want to run this, I only use it for local usb stick testing
