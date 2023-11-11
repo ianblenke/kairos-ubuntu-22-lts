@@ -11,7 +11,7 @@ if which nerdctl; then
   mkdir -p /run/containerd
   ln -nsf /run/k3s/containerd/containerd.sock /run/containerd/containerd.sock
   DOCKERSOCK=/run/k3s/containerd/containerd.sock
-#fi
+fi
 
 if which $DOCKER; then
   $DOCKER pull $IMAGE

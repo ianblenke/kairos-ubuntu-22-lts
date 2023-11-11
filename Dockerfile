@@ -106,10 +106,12 @@ RUN apt-get update \
     networkd-dispatcher \
     nfs-common \
     libnss-mdns \
+    nfs-common \
     nvme-cli \
     open-iscsi \
     openssh-server \
     open-vm-tools \
+    open-iscsi \
     os-prober \
     packagekit-tools \
     parted \
@@ -236,3 +238,4 @@ COPY 50-flannel.link /etc/systemd/network/50-flannel.link
 
 #COPY registries.yaml /etc/rancher/k3s/registries.yaml
 
+COPY nucleus.avahi-daemon.service.xml /etc/avahi/services/ssh.service

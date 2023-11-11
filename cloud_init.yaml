@@ -41,6 +41,19 @@ strict: true
 # Custom partitioning
 stages:
   boot:
+    - name: "Disable local-storage as default class"
+      files:
+        - path: /var/lib/rancher/k3s/server/manifests/custom-local-path-storage-class.yaml
+          content: |
+            apiVersion: storage.k8s.io/v1
+            kind: StorageClass
+            metadata:
+              name: local-path
+              annotations:
+                storageclass.kubernetes.io/is-default-class: "false"
+            provisioner: rancher.io/local-path
+            volumeBindingMode: WaitForFirstConsumer
+            reclaimPolicy: Delete
     - name: "Add dnsutils pod"
       files:
         - path: /var/lib/rancher/k3s/server/manifests/dns-utils.yaml
@@ -90,13 +103,13 @@ stages:
             apiVersion: v1
             kind: Namespace
             metadata:
-              name: longhorn
+              name: longhorn-system
             ---
             apiVersion: helm.cattle.io/v1
             kind: HelmChart
             metadata:
               name: longhorn-crd
-              namespace: longhorn
+              namespace: longhorn-system
             spec:
               chart: https://github.com/longhorn/charts/releases/download/longhorn-1.5.2/longhorn-1.5.2.tgz
     - name: "Copy forgejo deployment files"
@@ -127,10 +140,10 @@ stages:
         net.core.default_qdisc: "fq"               # Define queuing discipline to use for network devices
         net.bridge.bridge-nf-call-iptables: "0"    # Do not call iptables for bridged traffic
         net.bridge.bridge-nf-call-ip6tables: "0"   # Do not call ip6tables for bridged traffic
-    - name: "Repart disk"
+    - name: "Repart boot disk"
       layout:
         device:
-          path: "/dev/nvme0n1"
+          path: "/dev/nvme1n1"
         # Only last partition can be expanded and it happens after all the other
         # partitions are created. size: 0 means all available free space
         expand_partition:
@@ -153,19 +166,33 @@ stages:
           #  filesystem: "ext4"
           #    size: 0
 
+#    - name: "Repart data disk"
+#      layout:
+#        device:
+#          path: "/dev/nvme1n1"
+#        # Only last partition can be expanded and it happens after all the other
+#        # partitions are created. size: 0 means all available free space
+#        expand_partition:
+#          size: 0
+#        add_partitions:
+#          - fsLabel: "LONGHORN"
+#            pLabel: "longhorn"
+#            filesystem: "ext4"
+#            size: 0
+
 #  kairos-install.pre.before:
-#  - if:  '[ -e /dev/nvme0n1 ]'
+#  - if:  '[ -e /dev/nvme1n1 ]'
 #    name: "Create partitions"
 #    commands:
 #      - |
-#        parted --script --machine -- /dev/nvme0n1 mklabel msdos
+#        parted --script --machine -- /dev/nvme1n1 mklabel msdos
 #    layout:
 #      device:
 #        # It will partition a device including the given filesystem label
 #        # or partition label (filesystem label matches first) or the device
 #        # provided in 'path'. The label check has precedence over path when
 #        # both are provided.
-#        path: "/dev/nvme0n1"
+#        path: "/dev/nvme1n1"
 #      expand_partitions:
 #        size: 0 # All available space
 #      add_partitions:
@@ -189,7 +216,7 @@ stages:
 # The install block is to drive automatic installations without user interaction.
 install:
   # Device for automated installs
-  device: "/dev/nvme0n1"
+  device: "/dev/nvme1n1"
   # Reboot after installation
   reboot: false
   # Power off after installation
@@ -323,7 +350,7 @@ install:
   # custom user mounts
   # bind mounts, can be read and modified, changes persist reboots
   bind_mounts:
-  - /var/lib/ceph
+  - /var/lib/longhorn
   # ephemeral mounts, can be read and modified, changed are discarded at reboot
   #ephemeral_mounts:
   #- /opt/scratch/
