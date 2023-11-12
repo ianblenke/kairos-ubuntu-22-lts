@@ -104,6 +104,7 @@ RUN apt-get update \
     ncurses-term \
     neovim \
     networkd-dispatcher \
+    net-tools \
     nfs-common \
     libnss-mdns \
     nfs-common \
@@ -239,3 +240,7 @@ COPY 50-flannel.link /etc/systemd/network/50-flannel.link
 #COPY registries.yaml /etc/rancher/k3s/registries.yaml
 
 COPY nucleus.avahi-daemon.service.xml /etc/avahi/services/ssh.service
+
+RUN perl -pi -e 's/^hosts:/#hosts:/' /etc/nsswitch.conf \
+ && echo 'hosts:          files mdns4_minimal [NOTFOUND=return] dns' >> /etc/nsswitch.conf
+

@@ -425,10 +425,10 @@ k3s:
 ##    K3S_DATASTORE_ENDPOINT: "mysql://username:password@tcp(hostname:3306)/database-name"
     K3S_KUBECONFIG_MODE: "644"
   args:
-    - --kubelet-arg="node-ip=0.0.0.0" # To prioritize IPv4 traffic
+#    - --kubelet-arg="node-ip=0.0.0.0" # To prioritize IPv4 traffic
 #   #OR
-#   - --kubelet-arg="node-ip=::" # To prioritize IPv6 traffic
-    - --cluster-cidr=10.42.0.0/16,fd00:cafe:42:0::/56 --service-cidr=10.43.0.0/16,fd00:cafe:42:1::/112
+#    - --kubelet-arg="node-ip=::" # To prioritize IPv6 traffic
+#    - --cluster-cidr=10.42.0.0/16,fd00:cafe:42:0::/56 --service-cidr=10.43.0.0/16,fd00:cafe:42:1::/112
     # https://docs.k3s.io/installation/network-options#custom-cni
     - --disable-network-policy
     # https://docs.k3s.io/installation/configuration#configuration-file
@@ -516,14 +516,14 @@ p2p:
   #network_token: "${network_token}"
 
 ## Sets the Elastic IP used in KubeVIP. Only valid with p2p
-#kubevip:
-#  eip: "10.1.0.254"
-#  # Specify a manifest URL for KubeVIP. Empty uses default
-#  #manifest_url: ""
-#  # Enables KubeVIP
-#  enable: true
-#  # Specifies a KubeVIP Interface
-#  interface: "edgevpn0"
+kubevip:
+  eip: "10.1.0.254"
+  # Specify a manifest URL for KubeVIP. Empty uses default
+  #manifest_url: ""
+  # Enables KubeVIP
+  enable: true
+  # Specifies a KubeVIP Interface
+  interface: "edgevpn0"
 
 #bundles:
 #- targets:
