@@ -200,8 +200,9 @@ RUN rm -Rf /boot/.vmlinuz.hmac # No idea
 #RUN update-initramfs -c -k all
 ### Symlink in initrd
 RUN kernel=$(ls /lib/modules | tail -n1) \
+ && cp -a /usr/lib/grub/x86_64-efi/ /boot/grub/x86_64-efi/ \
  && ln -nsf "vmlinuz-${kernel}" /boot/vmlinuz \
- && dracut -v -N -f "/boot/initrd-${kernel}" "${kernel}" \
+ && dracut -v -N --add-drivers regexp -f "/boot/initrd-${kernel}" "${kernel}" \
  && ln -nsf "initrd-${kernel}" /boot/initrd \
  && depmod -a "${kernel}"
 RUN rm -rf /boot/initramfs-*

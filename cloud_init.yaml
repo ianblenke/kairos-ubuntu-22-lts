@@ -481,6 +481,7 @@ p2p:
       # DHCP: "true"
       ## Disable DHT (for airgap)
       # EDGEVPNDHT: "false"
+      EDGEVPNMDNS: "false"
       # EDGEVPNMAXCONNS: "200"
       # EDGEVPNHOLEPUNCH: true
       # EDGEVPNMPLEX: true
