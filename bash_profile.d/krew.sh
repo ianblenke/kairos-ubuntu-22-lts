@@ -13,3 +13,6 @@ which kubectl-krew > /dev/null 2>&1 || (
   ./"${KREW}" install krew
 )
 which kubectl-stern > /dev/null 2>&1 || kubectl krew install stern
+ln -s kubectl-stern ${KREW_ROOT:-$HOME/.krew}/bin/stern
+ln -s kubectl-krew ${KREW_ROOT:-$HOME/.krew}/bin/krew
+
