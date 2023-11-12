@@ -249,5 +249,5 @@ RUN mkdir -p /usr/local/bin \
  && cp /usr/bin/nerdctl /usr/local/bin/docker \
  && chmod 4755 /usr/local/bin/docker
 
-COPY kairos-agent-upgrade.sh /usr/local/bin/kairos-agent-upgrade.sh
+COPY kairos-agent-upgrade.sh /usr/bin/kairos-agent-upgrade.sh
 
