@@ -244,3 +244,7 @@ COPY nucleus.avahi-daemon.service.xml /etc/avahi/services/ssh.service
 RUN perl -pi -e 's/^hosts:/#hosts:/' /etc/nsswitch.conf \
  && echo 'hosts:          files mdns4_minimal [NOTFOUND=return] dns' >> /etc/nsswitch.conf
 
+RUN mkdir -p /usr/local/bin \
+ && cp /usr/bin/nerdctl /usr/local/bin/docker \
+ && chmod 4755 /usr/local/bin/docker
+
