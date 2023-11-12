@@ -517,14 +517,14 @@ p2p:
   #network_token: "${network_token}"
 
 ## Sets the Elastic IP used in KubeVIP. Only valid with p2p
-kubevip:
-  eip: "10.1.0.254"
-  # Specify a manifest URL for KubeVIP. Empty uses default
-  #manifest_url: ""
-  # Enables KubeVIP
-  enable: true
-  # Specifies a KubeVIP Interface
-  interface: "edgevpn0"
+#kubevip:
+#  eip: "10.1.0.254"
+#  # Specify a manifest URL for KubeVIP. Empty uses default
+#  #manifest_url: ""
+#  # Enables KubeVIP
+#  enable: true
+#  # Specifies a KubeVIP Interface
+#  interface: "edgevpn0"
 
 #bundles:
 #- targets:

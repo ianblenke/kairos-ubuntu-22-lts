@@ -56,7 +56,6 @@ RUN touch /usr/libexec/.keep
 RUN apt-get update \
  && apt-get dist-upgrade -y \
  && apt-get install -y --no-install-recommends \
-    avahi-daemon \
     build-essential \
     conntrack \
     console-data \
@@ -139,6 +138,7 @@ RUN apt-get update \
     zstd \
     && apt-get remove -y unattended-upgrades && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+#    avahi-daemon \
 #    linux-generic-hwe-22.04 \
 #    ubuntu-advantage-tools \
 #    && apt-get purge --auto-remove -y ubuntu-advantage-tools \
@@ -232,15 +232,15 @@ RUN echo 'LANG="en_US.UTF-8"' > /etc/default/locale
 
 #COPY containerd-rootless-setuptool.sh /usr/bin/
 
-COPY avahi-dbus.conf /etc/dbus-1/system.d/avahi-dbus.conf
-COPY avahi-daemon.override /etc/systemd/system/avahi-daemon.service.d/override.conf
+## Things to make avahi-daemon work
+#COPY avahi-dbus.conf /etc/dbus-1/system.d/avahi-dbus.conf
+#COPY avahi-daemon.override /etc/systemd/system/avahi-daemon.service.d/override.conf
+#COPY avahi-services/ /etc/avahi/services/
 
 # https://wiki.archlinux.org/title/Kubernetes#Pods_cannot_communicate_when_using_Flannel_CNI_and_systemd-networkd
 COPY 50-flannel.link /etc/systemd/network/50-flannel.link
 
 #COPY registries.yaml /etc/rancher/k3s/registries.yaml
-
-COPY avahi-services/ /etc/avahi/services/
 
 RUN perl -pi -e 's/^hosts:/#hosts:/' /etc/nsswitch.conf \
  && echo 'hosts:          files mdns4_minimal [NOTFOUND=return] dns' >> /etc/nsswitch.conf
